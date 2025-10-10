@@ -9,7 +9,7 @@ jobs:
   package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
       - name: Zip blueprints
         run: |
           mkdir -p dist
@@ -18,11 +18,11 @@ jobs:
             (cd "$bp" && zip -r "../../dist/${name}.zip" template manifest.yaml README.md)
           done
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@aec2ec56f94eb8180ceec724245f64ef008b89f5 # v2
         with:
           files: dist/*.zip
       - name: Notify registry
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@ff45666b9427631e3450c54a1bcbee4d9ff4d7c0 # v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: getDragon-dev/dragon-registry
