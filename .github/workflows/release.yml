@@ -3,13 +3,16 @@ on:
   push:
     tags:
       - 'v*.*.*'
+
 permissions:
   contents: write
+
 jobs:
   package:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
       - name: Zip blueprints
         run: |
           mkdir -p dist
@@ -17,14 +20,26 @@ jobs:
             name=$(basename "$bp")
             (cd "$bp" && zip -r "../../dist/${name}.zip" template manifest.yaml README.md)
           done
+
       - name: Create Release
         uses: softprops/action-gh-release@aec2ec56f94eb8180ceec724245f64ef008b89f5 # v2
         with:
           files: dist/*.zip
+
+      # >>> New: get a token that can access dragon-registry
+      - name: Create app token
+        id: app
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.DRAGON_APP_ID }}
+          private-key: ${{ secrets.DRAGON_APP_PRIVATE_KEY }}
+          owner: getDragon-dev
+          repositories: dragon-registry
+
       - name: Notify registry
         uses: peter-evans/repository-dispatch@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app.outputs.token }}
           repository: getDragon-dev/dragon-registry
           event-type: dragon-blueprint-released
           client-payload: '{"tag": "${{ github.ref_name }}"}'
