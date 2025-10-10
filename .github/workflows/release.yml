@@ -1,0 +1,30 @@
+name: Release Blueprints
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+permissions:
+  contents: write
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Zip blueprints
+        run: |
+          mkdir -p dist
+          for bp in blueprints/*; do
+            name=$(basename "$bp")
+            (cd "$bp" && zip -r "../../dist/${name}.zip" template manifest.yaml README.md)
+          done
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+      - name: Notify registry
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: getDragon-dev/dragon-registry
+          event-type: dragon-blueprint-released
+          client-payload: '{"tag": "${{ github.ref_name }}"}'

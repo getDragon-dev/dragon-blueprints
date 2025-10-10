@@ -1,0 +1,4 @@
+name: cli-tool
+version: 1.0.0
+description: Cobra CLI starter.
+tags: [go, cli]
