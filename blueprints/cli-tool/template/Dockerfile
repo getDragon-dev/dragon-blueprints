@@ -4,7 +4,7 @@ WORKDIR /app
 COPY . .
 RUN go mod tidy && go build -o app
 
-FROM alpine:3.21@sha256:5405e8f36ce1878720f71217d664aa3dea32e5e5df11acbf07fc78ef5661465b
+FROM alpine:3.22@sha256:4b7ce07002c69e8f3d704a9c5d6fd3053be500b7f1c69fc0d80990c2ad8dd412
 WORKDIR /app
 COPY --from=build /app/app /usr/local/bin/app
 EXPOSE 8080
