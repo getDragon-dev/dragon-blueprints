@@ -29,7 +29,7 @@ jobs:
       # >>> New: get a token that can access dragon-registry
       - name: Create app token
         id: app
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
         with:
           app-id: ${{ secrets.DRAGON_APP_ID }}
           private-key: ${{ secrets.DRAGON_APP_PRIVATE_KEY }}
@@ -37,7 +37,7 @@ jobs:
           repositories: dragon-registry
 
       - name: Notify registry
-        uses: peter-evans/repository-dispatch@v4
+        uses: peter-evans/repository-dispatch@5fc4efd1a4797ddb68ffd0714a238564e4cc0e6f # v4
         with:
           token: ${{ steps.app.outputs.token }}
           repository: getDragon-dev/dragon-registry
