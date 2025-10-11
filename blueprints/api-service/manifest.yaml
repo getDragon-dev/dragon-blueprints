@@ -1,0 +1,4 @@
+name: api-service
+version: 1.0.0
+description: API service with selectable router and DB (native or GORM), Viper config, and migrations folder.
+tags: [go, api, router, db, gorm, viper, migrations]

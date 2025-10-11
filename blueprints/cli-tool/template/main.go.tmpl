@@ -1,17 +1,62 @@
-// Copyright 2025 getDragon-dev
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package main
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+)
+
+var rootCmd = &cobra.Command{
+	Use:   "{{ .Name }}",
+	Short: "A modern CLI built with Cobra and Viper",
+}
+
+func init() {
+	viper.SetEnvPrefix("APP")
+	viper.AutomaticEnv()
+	viper.SetDefault("PORT", 8080)
+	viper.SetDefault("LOG_LEVEL", "info")
+	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(serveCmd)
+}
 
 func main() {
-    fmt.Println("{{ .Name }}: hello from blueprint")
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Print version",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("{{ .Name }} version 0.1.0")
+	},
+}
+
+var serveCmd = &cobra.Command{
+	Use:   "serve",
+	Short: "Start demo HTTP server",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(200); w.Write([]byte("ok")) })
+
+		srv := &http.Server{ Addr: fmt.Sprintf(":%d", viper.GetInt("PORT")), Handler: mux }
+		go func() {
+			log.Printf("listening on %s", srv.Addr)
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed { log.Fatal(err) }
+		}()
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM); defer stop()
+		<-ctx.Done()
+		shutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second); defer cancel()
+		return srv.Shutdown(shutCtx)
+	},
 }

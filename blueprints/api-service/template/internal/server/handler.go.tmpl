@@ -1,0 +1,33 @@
+package server
+
+import (
+	"net/http"
+	{{- if eq .Router "chi" }}
+	"github.com/go-chi/chi/v5"{{ end }}
+	{{- if eq .Router "gorilla" }}
+	"github.com/gorilla/mux"{{ end }}
+	{{- if eq .Router "httprouter" }}
+	"github.com/julienschmidt/httprouter"{{ end }}
+)
+
+type DB interface{}
+
+func NewHandler(db DB) http.Handler {
+	{{- if eq .Router "chi" }}
+	r := chi.NewRouter()
+	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request){ w.Write([]byte("ok")) })
+	return r
+	{{- else if eq .Router "gorilla" }}
+	r := mux.NewRouter()
+	r.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request){ w.Write([]byte("ok")) }).Methods("GET")
+	return r
+	{{- else if eq .Router "httprouter" }}
+	r := httprouter.New()
+	r.GET("/healthz", func(w http.ResponseWriter, p httprouter.Params){ w.Write([]byte("ok")) })
+	return r
+	{{- else }}
+	mux := http.NewServeMux()
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request){ w.Write([]byte("ok")) })
+	return mux
+	{{- end }}
+}

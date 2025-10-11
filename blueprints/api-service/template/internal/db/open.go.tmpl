@@ -1,0 +1,48 @@
+package db
+
+import (
+	"database/sql"
+
+	"{{ .Name }}/internal/config"
+	{{- if hasSuffix .DB "-gorm" }}
+	"gorm.io/gorm"
+{{ end }}
+	{{- if hasPrefix .DB "postgres" }}
+	_ "github.com/lib/pq"
+{{ end }}
+	{{- if hasPrefix .DB "mysql" }}
+	_ "github.com/go-sql-driver/mysql"
+{{ end }}
+	{{- if hasPrefix .DB "sqlite" }}
+	_ "modernc.org/sqlite"
+{{ end }}
+	{{- if eq .DB "postgres-gorm" }}
+	"gorm.io/driver/postgres"
+{{ end }}
+	{{- if eq .DB "mysql-gorm" }}
+	"gorm.io/driver/mysql"
+{{ end }}
+	{{- if eq .DB "sqlite-gorm" }}
+	"gorm.io/driver/sqlite"
+{{ end }}
+)
+
+type Conn interface{}
+
+func Open(cfg config.Config) (Conn, func(), error) {
+	{{- if hasSuffix .DB "-gorm" }}
+	var dialector gorm.Dialector
+	{{- if eq .DB "postgres-gorm" }} dialector = postgres.Open(cfg.DatabaseURL) {{ end }}
+	{{- if eq .DB "mysql-gorm" }}    dialector = mysql.Open(cfg.DatabaseURL)    {{ end }}
+	{{- if eq .DB "sqlite-gorm" }}   dialector = sqlite.Open(cfg.DatabaseURL)   {{ end }}
+	g, err := gorm.Open(dialector, &gorm.Config{})
+	if err != nil { return nil, nil, err }
+	cleanup := func(){}
+	return g, cleanup, nil
+	{{- else }}
+	db, err := sql.Open("{{- if hasPrefix .DB "postgres" -}}postgres{{- else if hasPrefix .DB "mysql" -}}mysql{{- else -}}sqlite{{- end -}}", cfg.DatabaseURL)
+	if err != nil { return nil, nil, err }
+	cleanup := func(){ _ = db.Close() }
+	return db, cleanup, nil
+	{{- end }}
+}

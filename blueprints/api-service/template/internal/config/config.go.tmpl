@@ -1,0 +1,19 @@
+package config
+
+import "github.com/spf13/viper"
+
+type Config struct {
+	Port int
+	DatabaseURL string
+}
+
+func Load() Config {
+	viper.SetEnvPrefix("APP")
+	viper.AutomaticEnv()
+	viper.SetDefault("PORT", 8080)
+	viper.SetDefault("DATABASE_URL", "{{- if hasPrefix .DB "sqlite" -}}file:dev.db?_fk=1{{- else -}}postgres://user:pass@localhost:5432/app?sslmode=disable{{- end -}}")
+	return Config{
+		Port: viper.GetInt("PORT"),
+		DatabaseURL: viper.GetString("DATABASE_URL"),
+	}
+}
