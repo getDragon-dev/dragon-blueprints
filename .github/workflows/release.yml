@@ -22,14 +22,14 @@ jobs:
           done
 
       - name: Create Release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
         with:
           files: dist/*.zip
 
       # >>> New: get a token that can access dragon-registry
       - name: Create app token
         id: app
-        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3
         with:
           app-id: ${{ secrets.DRAGON_APP_ID }}
           private-key: ${{ secrets.DRAGON_APP_PRIVATE_KEY }}
